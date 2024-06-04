@@ -1,3 +1,6 @@
+// @ts-ignore Import module
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
 declare const L: any;
 
 class MapClass {
@@ -24,7 +27,17 @@ class MapClass {
         
         return;
     }
+}
 
+class App {
+    app: any;
+
+    constructor() {
+        // This will be substituted with the API info
+        const firebaseConfig : Object = {};
+
+        this.app = initializeApp(firebaseConfig);
+    }
 }
 
 document.addEventListener("DOMContentLoaded", (event) => {
