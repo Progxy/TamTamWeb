@@ -10,11 +10,13 @@
     margin-left: 15px;
 }
 
-#locateBt{
+#locateBt,
+#stopBt {
     margin-left: 10px;
     cursor: pointer;
 }
 
-#locateBt:hover {
+#locateBt:hover,
+#stopBt:hover {
     opacity: 0.7;
 }
