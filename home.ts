@@ -7,8 +7,8 @@ import { getDatabase, ref, child, get } from "https://www.gstatic.com/firebasejs
 declare const L: any;
 
 class Database {
-    app: any;
-    database: any;
+    private app: any;
+    private database: any;
 
     constructor() {
         // This will be substituted with the API info
