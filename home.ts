@@ -25,11 +25,6 @@ class Database {
     }
 }
 
-enum Days {
-    MONDAY = 1,
-    TUESDAY
-}
-
 class MapClass {
     private readonly months : Array<String> = [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ];    
     private readonly days : Array<String> = [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ];
