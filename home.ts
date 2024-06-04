@@ -25,9 +25,16 @@ class Database {
     }
 }
 
+enum Days {
+    MONDAY = 1,
+    TUESDAY
+}
+
 class MapClass {
-    map: any;
-    db: Database;
+    private readonly months : Array<String> = [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ];    
+    private readonly days : Array<String> = [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ];
+    private db: Database;
+    private map: any;
 
     constructor() {
         this.map = L.map('map').setView([51.505, -0.09], 13);
@@ -43,13 +50,17 @@ class MapClass {
             return;
         }
         
-        if (id.value === "Franchi") {
-            const data = await this.db.getData("demoHash");
-            console.log(data);
-            const location : Array<Number> = [43.780839643180016, 11.282694289234543];
-            this.map.setView(location, 13);
-            L.marker(location).addTo(this.map).bindPopup(`Victim coordinates: ${location}`);
+        const data : any | null = await this.db.getData(id.value);
+        if (data === null) {
+            alert("Id not found!\n");
+            return;
         }
+
+        const location: Array<Number> = [data.latitude, data.longitude];
+        const time: Date = new Date(data.lastUpdate);
+        const time_str: String = `${time.getHours()}:${time.getMinutes()}:${time.getSeconds()} on ${time.getDay()} ${this.days[time.getDate()]} ${this.months[time.getMonth()]} ${time.getFullYear()}`;
+        this.map.setView(location, 13);
+        L.marker(location).addTo(this.map).bindPopup(`Victim coordinates:<br> Lat: ${location[0]},<br> Long: ${location[1]},<br> id: ${data.id},<br> isTracked: ${data.isTracked},<br> lastUpdate: ${time_str}`).openPopup();
         
         return;
     }
