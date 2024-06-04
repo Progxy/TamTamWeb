@@ -1,0 +1,20 @@
+#map {
+    position: absolute;
+    margin-top: 15px;
+    margin-left: 15px;
+    height: 75%;
+    width: 97.5%;
+}
+
+#idInp {
+    margin-left: 15px;
+}
+
+#locateBt{
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+#locateBt:hover {
+    opacity: 0.7;
+}
