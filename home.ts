@@ -78,6 +78,11 @@ class MapClass {
             console.log("Unable to find the text input!\n");
             return;
         }
+        const index: number = this.ids.indexOf(id.value);
+        if (index !== -1) {
+            alert("Id already tracked\n");
+            return;
+        }
         this.db.setCheck(id.value, true);
         this.db.getData(id.value, this);
         return;
