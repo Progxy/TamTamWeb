@@ -19,6 +19,11 @@ class Database {
         this.database = getDatabase(this.app);
     }
 
+    public deleteCheck(id: String) {
+        this.check.delete(id);
+        return;
+    }
+
     public setCheck(id: String, val: boolean) {
         this.check.set(id, val);
         return;
@@ -29,7 +34,6 @@ class Database {
             const check : boolean | undefined = this.check.get(id);
             if (!check && check !== undefined) return;
             map.updateLocation(id, snapshot.val());
-            this.setCheck(id, true);
         });
         return;
     }
@@ -51,6 +55,7 @@ class MapClass {
 
     public updateLocation(id: String, data: any | null) {
         if (data === null) {
+            this.db.deleteCheck(id);
             alert("Id not found!\n");
             return;
         }
@@ -73,6 +78,7 @@ class MapClass {
             console.log("Unable to find the text input!\n");
             return;
         }
+        this.db.setCheck(id.value, true);
         this.db.getData(id.value, this);
         return;
     }
@@ -91,6 +97,7 @@ class MapClass {
             this.markers = this.markers.splice(index, index);
             this.ids = this.ids.splice(index, index);
             this.db.setCheck(id.value, false); // Interrupt the database from waiting for data update
+            // Potentially wait double the amount of the time the victim device takes to send new data and then delete the id instead of only setting it to false
         } else alert("Id not found!\n");
 
         return;
