@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 // @ts-ignore Import module
-import { getDatabase, ref, child, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 declare const L: any;
 
@@ -78,13 +78,16 @@ class MapClass {
             console.log("Unable to find the text input!\n");
             return;
         }
+
         const index: number = this.ids.indexOf(id.value);
         if (index !== -1) {
             alert("Id already tracked\n");
             return;
         }
+        
         this.db.setCheck(id.value, true);
         this.db.getData(id.value, this);
+        
         return;
     }
 
