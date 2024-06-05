@@ -2,13 +2,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 // @ts-ignore Import module
-import { getDatabase, ref, child, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, child, get, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 declare const L: any;
 
 class Database {
     private app: any;
     private database: any;
+    private check: Map<String, boolean> = new Map<String, boolean>();
 
     constructor() {
         // This will be substituted with the API info
@@ -18,10 +19,19 @@ class Database {
         this.database = getDatabase(this.app);
     }
 
-    async getData(id: String) : Promise<any | null> {
-        const snapshot = await get(child(ref(this.database), `${id}`)).catch((error: any) => { console.error(error); });
-        if (snapshot.exists()) return snapshot.val();
-        return null;
+    public setCheck(id: String, val: boolean) {
+        this.check.set(id, val);
+        return;
+    }
+
+    public getData(id: String, map: MapClass) {
+        onValue(ref(this.database, id), (snapshot : any) => {
+            const check : boolean | undefined = this.check.get(id);
+            if (!check && check !== undefined) return;
+            map.updateLocation(id, snapshot.val());
+            this.setCheck(id, true);
+        });
+        return;
     }
 }
 
@@ -39,15 +49,7 @@ class MapClass {
         this.db = new Database();
     }
 
-    async locate() {
-        // Cast the HTMLElement to HTMLInputElement to use the value property without triggering the warning
-        let id : HTMLInputElement | null = <HTMLInputElement>document.getElementById("idInp");
-        if (id === null) {
-            console.log("Unable to find the text input!\n");
-            return;
-        }
-        
-        const data : any | null = await this.db.getData(id.value);
+    public updateLocation(id: String, data: any | null) {
         if (data === null) {
             alert("Id not found!\n");
             return;
@@ -59,12 +61,23 @@ class MapClass {
         this.map.setView(location, 13);
         const marker = L.marker(location).addTo(this.map).bindPopup(`Victim coordinates:<br> Lat: ${location[0]},<br> Long: ${location[1]},<br> id: ${data.id},<br> isTracked: ${data.isTracked},<br> lastUpdate: ${time_str}`).openPopup();
         this.markers.push(marker);
-        this.ids.push(id.value);
+        this.ids.push(id);
 
         return;
     }
 
-    stop() {
+    public locate() {
+        // Cast the HTMLElement to HTMLInputElement to use the value property without triggering the warning
+        let id : HTMLInputElement | null = <HTMLInputElement>document.getElementById("idInp");
+        if (id === null) {
+            console.log("Unable to find the text input!\n");
+            return;
+        }
+        this.db.getData(id.value, this);
+        return;
+    }
+
+    public stop() {
         // Cast the HTMLElement to HTMLInputElement to use the value property without triggering the warning
         let id : HTMLInputElement | null = <HTMLInputElement>document.getElementById("idInp");
         if (id === null) {
@@ -77,6 +90,7 @@ class MapClass {
             this.map.removeLayer(this.markers[index]);
             this.markers = this.markers.splice(index, index);
             this.ids = this.ids.splice(index, index);
+            this.db.setCheck(id.value, false); // Interrupt the database from waiting for data update
         } else alert("Id not found!\n");
 
         return;
