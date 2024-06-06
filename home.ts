@@ -40,16 +40,16 @@ class Database {
 }
 
 class MapClass {
-    private readonly months : Array<String> = [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ];    
-    private readonly days : Array<String> = [ 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ];
+    private readonly months : Array<String> = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];    
+    private readonly days : Array<String> = [ "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" ];
     private markers: Array<any> = [];
     private ids: Array<String> = [];
     private db: Database;
     private map: any;
 
     constructor() {
-        this.map = L.map('map').setView([51.505, -0.09], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {}).addTo(this.map);
+        this.map = L.map("map").setView([51.505, -0.09], 13);
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {}).addTo(this.map);
         this.db = new Database();
     }
 
