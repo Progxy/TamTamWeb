@@ -63,7 +63,6 @@ class MapClass {
             alert("Id not found!\n");
             return;
         }
-
         
         const location: Array<number> = [data.latitude, data.longitude];
         const time: Date = new Date(data.lastUpdate);
