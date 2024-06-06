@@ -53,6 +53,10 @@ class MapClass {
         this.db = new Database();
     }
 
+    private format_number(time_value: number) : String {
+        return time_value > 10 ? `0${time_value}` : `${time_value}`;
+    } 
+
     public updateLocation(id: String, data: any | null) {
         if (data === null) {
             this.db.deleteCheck(id);
@@ -60,13 +64,20 @@ class MapClass {
             return;
         }
 
-        const location: Array<Number> = [data.latitude, data.longitude];
+        
+        const location: Array<number> = [data.latitude, data.longitude];
         const time: Date = new Date(data.lastUpdate);
-        const time_str: String = `${time.getHours()}:${time.getMinutes()}:${time.getSeconds()} on ${time.getDay()} ${this.days[time.getDate()]} ${this.months[time.getMonth()]} ${time.getFullYear()}`;
+        const time_str: String = `${this.format_number(time.getHours())}:${this.format_number(time.getMinutes())}:${this.format_number(time.getSeconds())} on ${this.format_number  (time.getDay())} ${this.days[time.getDate()]} ${this.months[time.getMonth()]} ${time.getFullYear()}`;
         this.map.setView(location, 13);
         const marker = L.marker(location).addTo(this.map).bindPopup(`Victim coordinates:<br> Lat: ${location[0]},<br> Long: ${location[1]},<br> id: ${data.id},<br> isTracked: ${data.isTracked},<br> lastUpdate: ${time_str}`).openPopup();
-        this.markers.push(marker);
-        this.ids.push(id);
+        const index: number = this.ids.indexOf(id);    
+        if (index === -1) {
+            this.ids.push(id);
+            this.markers.push(marker);
+        } else {
+            this.map.removeLayer(this.markers[index]);  
+            this.markers[index] = marker; 
+        }
 
         return;
     }
