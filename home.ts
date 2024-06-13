@@ -40,17 +40,14 @@ class Database {
 }
 
 class MapClass {
-    private readonly months : Array<String> = [ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" ];    
-    private readonly days : Array<String> = [ "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" ];
+    private readonly db: Database = new Database();
     private markers: Array<any> = [];
     private ids: Array<String> = [];
-    private db: Database;
     private map: any;
 
     constructor() {
         this.map = L.map("map").setView([51.505, -0.09], 13);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {}).addTo(this.map);
-        this.db = new Database();
     }
 
     public updateLocation(id: String, data: any | null) {
@@ -63,7 +60,7 @@ class MapClass {
         const location: Array<number> = [data.latitude, data.longitude];
         const time: Date = new Date(data.lastUpdate);
         this.map.setView(location, 13);
-        const marker = L.marker(location).addTo(this.map).bindPopup(`Victim coordinates:<br> Lat: ${location[0]},<br> Long: ${location[1]},<br> id: ${data.id},<br> isTracked: ${data.isTracked},<br> lastUpdate: ${time}`).openPopup();
+        const marker = L.marker(location).addTo(this.map).bindPopup(`Victim coordinates:<br> Lat: ${data.latitude},<br> Long: ${data.longitude},<br> id: ${data.id},<br> isTracked: ${data.isTracked},<br> lastUpdate: ${time}`).openPopup();
         const index: number = this.ids.indexOf(id);    
         if (index === -1) {
             this.ids.push(id);
@@ -110,7 +107,6 @@ class MapClass {
             this.markers = this.markers.splice(index, index);
             this.ids = this.ids.splice(index, index);
             this.db.setCheck(id.value, false); // Interrupt the database from waiting for data update
-            // Potentially wait double the amount of the time the victim device takes to send new data and then delete the id instead of only setting it to false
         } else alert("Id not found!\n");
 
         return;
