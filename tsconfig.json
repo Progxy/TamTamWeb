@@ -6,6 +6,7 @@
         "strict": true
     },
     "include": [
-        "home.ts"
+        "home.ts",
+        "test.ts"
     ]
 }

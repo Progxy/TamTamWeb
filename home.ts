@@ -29,12 +29,22 @@ class Database {
         return;
     }
 
+    private isAValidId(id: String) : boolean {
+        // Paths must be non-empty strings and can't contain ".", "#", "$", "[", or "]"
+        return !(id.includes(".") || id.includes("#") || id.includes("$") || id.includes("[") || id.includes("]") || id === "");
+    }
+
     public getData(id: String, map: MapClass) {
-        onValue(ref(this.database, id), (snapshot : any) => {
-            const check : boolean | undefined = this.check.get(id);
-            if (!check && check !== undefined) return;
-            map.updateLocation(id, snapshot.val());
-        });
+        if (!this.isAValidId(id)) return;
+        try {            
+            onValue(ref(this.database, id), (snapshot : any) => {
+                const check : boolean | undefined = this.check.get(id);
+                if (!check && check !== undefined) return;
+                map.updateLocation(id, snapshot.val());
+            });
+        } catch (error: any) {
+            alert(error);
+        }
         return;
     }
 }
