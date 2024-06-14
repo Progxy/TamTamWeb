@@ -6,6 +6,22 @@ import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10
 
 declare const L: any;
 
+export var map: MapClass;
+
+export function setMsgBox(str: string, color: string) {
+    const msgBox : HTMLInputElement = <HTMLInputElement> document.getElementById("msgBox");
+    msgBox.style.color = color;
+    msgBox.innerHTML = str;
+    return;
+}
+
+export function setIdInp(str: string, color: string) {
+    const idInp : HTMLInputElement = <HTMLInputElement> document.getElementById("idInp");
+    idInp.value = str;
+    idInp.style.borderColor = color;
+    return;
+}
+
 class Database {
     private app: any;
     private database: any;
@@ -29,13 +45,22 @@ class Database {
         return;
     }
 
-    private isAValidId(id: String) : boolean {
+    private isAValidId(id: string) : boolean {
         // Paths must be non-empty strings and can't contain ".", "#", "$", "[", or "]"
         return !(id.includes(".") || id.includes("#") || id.includes("$") || id.includes("[") || id.includes("]") || id === "");
     }
 
-    public getData(id: String, map: MapClass) {
-        if (!this.isAValidId(id)) return;
+    private setErrorBox(str: string) {
+        setIdInp("", "#D2042D");
+        setMsgBox(str, "#D2042D");
+        return;
+    }
+
+    public getData(id: string, map: MapClass) : boolean {
+        if (!this.isAValidId(id)) {
+            this.setErrorBox(`Invalid ID: Paths must be non-empty strings and can't contain ".", "#", "$", "[", or "]"`);
+            return false;
+        } 
         try {            
             onValue(ref(this.database, id), (snapshot : any) => {
                 const check : boolean | undefined = this.check.get(id);
@@ -43,9 +68,10 @@ class Database {
                 map.updateLocation(id, snapshot.val());
             });
         } catch (error: any) {
-            alert(error);
+            this.setErrorBox(error);
+            return false;
         }
-        return;
+        return true;
     }
 }
 
@@ -58,12 +84,24 @@ class MapClass {
     constructor() {
         this.map = L.map("map").setView([51.505, -0.09], 13);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {}).addTo(this.map);
+        document.getElementById("locateBt")?.addEventListener("click", () => map.locate());     
+        document.getElementById("stopBt")?.addEventListener("click", () => map.stop()); 
+    }
+
+    private setInfoBox(str: string) {
+        setIdInp("", "#FFBF00");
+        setMsgBox(str, "#FFBF00");
+        return;
+    }
+
+    public getDb() : Database {
+        return this.db;
     }
 
     public updateLocation(id: String, data: any | null) {
         if (data === null) {
             this.db.deleteCheck(id);
-            alert("Id not found!\n");
+            this.setInfoBox("ID not found!");
             return;
         }
         
@@ -84,16 +122,10 @@ class MapClass {
     }
 
     public locate() {
-        // Cast the HTMLElement to HTMLInputElement to use the value property without triggering the warning
-        let id : HTMLInputElement | null = <HTMLInputElement>document.getElementById("idInp");
-        if (id === null) {
-            console.log("Unable to find the text input!\n");
-            return;
-        }
-
+        let id : HTMLInputElement = <HTMLInputElement>document.getElementById("idInp");
         const index: number = this.ids.indexOf(id.value);
         if (index !== -1) {
-            alert("Id already tracked\n");
+            this.setInfoBox("ID already tracked!");
             return;
         }
         
@@ -104,33 +136,25 @@ class MapClass {
     }
 
     public stop() {
-        // Cast the HTMLElement to HTMLInputElement to use the value property without triggering the warning
-        let id : HTMLInputElement | null = <HTMLInputElement>document.getElementById("idInp");
-        if (id === null) {
-            console.log("Unable to find the text input!\n");
-            return;
-        }
-
+        let id : HTMLInputElement = <HTMLInputElement>document.getElementById("idInp");
         const index: number = this.ids.indexOf(id.value);
         if (index !== -1) {
             this.map.removeLayer(this.markers[index]);
             this.markers = this.markers.splice(index, index);
             this.ids = this.ids.splice(index, index);
             this.db.setCheck(id.value, false); // Interrupt the database from waiting for data update
-        } else alert("Id not found!\n");
+        } else this.setInfoBox("ID not found!");
 
         return;
     }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    const map: MapClass = new MapClass();
-    
-    document.getElementById("locateBt")?.addEventListener("click", () => {
-        map.locate();
-    });     
-
-    document.getElementById("stopBt")?.addEventListener("click", () => {
-        map.stop();
-    }); 
+    map = new MapClass();
+    document.getElementById("idInp")?.addEventListener("focus", () => {
+        const idInp: HTMLInputElement = <HTMLInputElement> document.getElementById("idInp");
+        idInp.style.borderColor = "transparent";
+        const msgBox : HTMLInputElement = <HTMLInputElement> document.getElementById("msgBox");
+        msgBox.innerHTML = "";
+    });
 });
