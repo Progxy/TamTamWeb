@@ -1,17 +1,28 @@
 import { map, setMsgBox, setIdInp } from "./home.js";
 
+function randomNumber() {
+    return Math.round(Math.random() * 1_000_000);
+}
+
 function generateInputString() : string {
-    let str: string = "";
-    for (let i = 0; i < (Math.random() * 100) % 100; ++i) {
-        str = str.concat(String.fromCharCode(((Math.random() * 1000000) % 127 + 32) % 127));
+    const symbols: string[] = [".", "#", "$", "\n", "[", "]"];
+    let str: string = symbols[randomNumber() % 6];
+    for (let i = 0; i < randomNumber() % 100; ++i) {
+        str = str.concat(String.fromCharCode((randomNumber() % 127 + 32) % 127));
     }
+    str = str.concat(symbols[randomNumber() % 6]);
     return str;
 }
 
 function testLocateBt() : boolean {
-    const test_str: string = generateInputString();
-    console.log(`Test string: "${test_str}"`);
-    return (map.getDb().getData(test_str, map) || document.getElementById("msgBox")?.innerHTML !== "ID not found!");
+    for (let i = 0; i < randomNumber() % 1000; ++i) {
+        const test_str: string = generateInputString();
+        if (map.getDb().getData(test_str, map)) {
+            console.log(`Test string: ${test_str}`);
+            return false;
+        }
+    }
+    return true;
 }
 
 function testStopBt() : boolean {

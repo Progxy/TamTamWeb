@@ -46,8 +46,8 @@ class Database {
     }
 
     private isAValidId(id: string) : boolean {
-        // Paths must be non-empty strings and can't contain ".", "#", "$", "[", or "]"
-        return !(id.includes(".") || id.includes("#") || id.includes("$") || id.includes("[") || id.includes("]") || id === "");
+        // Paths must be non-empty strings and can't contain ".", "#", "$", "\n", "[", or "]"
+        return !(id.includes(".") || id.includes("#") || id.includes("$") || id.includes("[") || id.includes("\n") || id.includes("]") || id === "");
     }
 
     private setErrorBox(str: string) {
@@ -58,19 +58,16 @@ class Database {
 
     public getData(id: string, map: MapClass) : boolean {
         if (!this.isAValidId(id)) {
-            this.setErrorBox(`Invalid ID: Paths must be non-empty strings and can't contain ".", "#", "$", "[", or "]"`);
+            this.setErrorBox(`Invalid ID: Paths must be non-empty strings and can't contain ".", "#", "$", "\n", "[", or "]"`);
             return false;
         } 
-        try {            
-            onValue(ref(this.database, id), (snapshot : any) => {
-                const check : boolean | undefined = this.check.get(id);
-                if (!check && check !== undefined) return;
-                map.updateLocation(id, snapshot.val());
-            });
-        } catch (error: any) {
-            this.setErrorBox(error);
-            return false;
-        }
+        
+        onValue(ref(this.database, id), (snapshot : any) => {
+            const check : boolean | undefined = this.check.get(id);
+            if (!check && check !== undefined) return;
+            map.updateLocation(id, snapshot.val());
+        });
+        
         return true;
     }
 }
