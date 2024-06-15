@@ -26,8 +26,15 @@ function testLocateBt() : boolean {
 }
 
 function testStopBt() : boolean {
-    map.stop();
-    return (document.getElementById("msgBox")?.innerHTML === "ID not found!");
+    for (let i = 0; i < randomNumber() % 1000; ++i) {
+        const test_str: string = generateInputString();
+        (<HTMLInputElement> document.getElementById("idInp")).value = test_str;
+        if (map.stop()) {
+            console.log(`Test string: ${test_str}`);
+            return false;
+        }
+    }
+    return true;
 }
 
 document.addEventListener("DOMContentLoaded", () => {

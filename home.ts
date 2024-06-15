@@ -129,7 +129,7 @@ class MapClass {
         return;
     }
 
-    public stop() {
+    public stop() : boolean {
         let id : HTMLInputElement = <HTMLInputElement>document.getElementById("idInp");
         const index: number = this.ids.indexOf(id.value);
         if (index !== -1) {
@@ -138,9 +138,12 @@ class MapClass {
             this.ids = this.ids.splice(index, index);
             const unsubscribe: any | undefined = this.db.getQueryReference(id.value);
             unsubscribe(); // Interrupt the database from waiting for data update
-        } else this.setInfoBox("ID not found!");
+        } else {
+            this.setInfoBox("ID not found!");
+            return false;
+        }
 
-        return;
+        return true;
     }
 }
 
