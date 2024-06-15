@@ -25,7 +25,7 @@ export function setIdInp(str: string, color: string) {
 class Database {
     private app: any;
     private database: any;
-    private check: Map<String, boolean> = new Map<String, boolean>();
+    private query_references: Map<string, any> = new Map<string, any>();
 
     constructor() {
         // This will be substituted with the API info
@@ -33,16 +33,6 @@ class Database {
 
         this.app = initializeApp(firebaseConfig);
         this.database = getDatabase(this.app);
-    }
-
-    public deleteCheck(id: String) {
-        this.check.delete(id);
-        return;
-    }
-
-    public setCheck(id: String, val: boolean) {
-        this.check.set(id, val);
-        return;
     }
 
     private isAValidId(id: string) : boolean {
@@ -56,15 +46,23 @@ class Database {
         return;
     }
 
+    public getQueryReference(id: string) : any | undefined {
+        return this.query_references.get(id);
+    }    
+    
+    public deleteQueryReference(id: string) {
+        return this.query_references.delete(id);
+    }
+
     public getData(id: string, map: MapClass) : boolean {
         if (!this.isAValidId(id)) {
             this.setErrorBox(`Invalid ID: Paths must be non-empty strings and can't contain ".", "#", "$", "\n", "[", or "]"`);
             return false;
-        } 
+        }
         
-        onValue(ref(this.database, id), (snapshot : any) => {
-            const check : boolean | undefined = this.check.get(id);
-            if (!check && check !== undefined) return;
+        const unsubscribe = onValue(ref(this.database, id), (snapshot : any) => {
+            if (snapshot.val() === null) unsubscribe();
+            if (!this.query_references.has(id)) this.query_references.set(id, unsubscribe);
             map.updateLocation(id, snapshot.val());
         });
         
@@ -75,7 +73,7 @@ class Database {
 class MapClass {
     private readonly db: Database = new Database();
     private markers: Array<any> = [];
-    private ids: Array<String> = [];
+    private ids: Array<string> = [];
     private map: any;
 
     constructor() {
@@ -95,10 +93,10 @@ class MapClass {
         return this.db;
     }
 
-    public updateLocation(id: String, data: any | null) {
+    public updateLocation(id: string, data: any | null) {
         if (data === null) {
-            this.db.deleteCheck(id);
             this.setInfoBox("ID not found!");
+            this.db.deleteQueryReference(id);
             return;
         }
         
@@ -126,7 +124,6 @@ class MapClass {
             return;
         }
         
-        this.db.setCheck(id.value, true);
         this.db.getData(id.value, this);
         
         return;
@@ -139,7 +136,8 @@ class MapClass {
             this.map.removeLayer(this.markers[index]);
             this.markers = this.markers.splice(index, index);
             this.ids = this.ids.splice(index, index);
-            this.db.setCheck(id.value, false); // Interrupt the database from waiting for data update
+            const unsubscribe: any | undefined = this.db.getQueryReference(id.value);
+            unsubscribe(); // Interrupt the database from waiting for data update
         } else this.setInfoBox("ID not found!");
 
         return;
