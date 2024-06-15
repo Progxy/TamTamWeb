@@ -22,6 +22,14 @@ export function setIdInp(str: string, color: string) {
     return;
 }
 
+export type VictimData = {
+    latitude: number;
+    longitude: number;
+    lastUpdate: string;
+    id: string;
+    isTracked: boolean;
+};
+
 class Database {
     private app: any;
     private database: any;
@@ -63,7 +71,7 @@ class Database {
         const unsubscribe = onValue(ref(this.database, id), (snapshot : any) => {
             if (snapshot.val() === null) unsubscribe();
             if (!this.query_references.has(id)) this.query_references.set(id, unsubscribe);
-            map.updateLocation(id, snapshot.val());
+            map.updateLocation(id, <VictimData | null>snapshot.val());
         });
         
         return true;
@@ -89,15 +97,18 @@ class MapClass {
         return;
     }
 
-    public getDb() : Database {
-        return this.db;
+    private isValidVictimData(data: VictimData) {
+        return !(data.latitude === undefined || data.longitude === undefined || data.id === undefined || data.lastUpdate === undefined || data.isTracked === undefined);
     }
 
-    public updateLocation(id: string, data: any | null) {
+    public updateLocation(id: string, data: VictimData | null) {
         if (data === null) {
             this.setInfoBox("ID not found!");
             this.db.deleteQueryReference(id);
-            return;
+            return false;
+        } else if (!this.isValidVictimData(data)) {
+            this.setInfoBox("Corrupted data, pleasy retry...");
+            return false;
         }
         
         const location: Array<number> = [data.latitude, data.longitude];
@@ -113,20 +124,19 @@ class MapClass {
             this.markers[index] = marker; 
         }
 
-        return;
+        return false;
     }
 
-    public locate() {
+    public locate() : boolean {
         let id : HTMLInputElement = <HTMLInputElement>document.getElementById("idInp");
         const index: number = this.ids.indexOf(id.value);
         if (index !== -1) {
             this.setInfoBox("ID already tracked!");
-            return;
+            return false;
         }
         
-        this.db.getData(id.value, this);
-        
-        return;
+        const res: boolean = this.db.getData(id.value, this);
+        return res;
     }
 
     public stop() : boolean {

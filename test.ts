@@ -1,4 +1,4 @@
-import { map, setMsgBox, setIdInp } from "./home.js";
+import { map, setMsgBox, setIdInp, VictimData } from "./home.js";
 
 function randomNumber() {
     return Math.round(Math.random() * 1_000_000);
@@ -14,10 +14,11 @@ function generateInputString() : string {
     return str;
 }
 
-function testLocateBt() : boolean {
+function testLocate() : boolean {
     for (let i = 0; i < randomNumber() % 1000; ++i) {
         const test_str: string = generateInputString();
-        if (map.getDb().getData(test_str, map)) {
+        (<HTMLInputElement> document.getElementById("idInp")).value = test_str;
+        if (map.locate()) {
             console.log(`Test string: ${test_str}`);
             return false;
         }
@@ -25,7 +26,7 @@ function testLocateBt() : boolean {
     return true;
 }
 
-function testStopBt() : boolean {
+function testStop() : boolean {
     for (let i = 0; i < randomNumber() % 1000; ++i) {
         const test_str: string = generateInputString();
         (<HTMLInputElement> document.getElementById("idInp")).value = test_str;
@@ -37,9 +38,15 @@ function testStopBt() : boolean {
     return true;
 }
 
+function testUpdateLocation() : boolean {
+    const data: Object = {"latitude": 123};
+    return !map.updateLocation("test", null) || !map.updateLocation("test", <VictimData> data);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-    if (!testLocateBt()) alert("Test: testLocateBt Failed\n");
-    else if (!testStopBt()) alert("Test: testStopBt Failed\n");
+    if (!testLocate()) alert("Test: testLocate Failed\n");
+    else if (!testStop()) alert("Test: testStop Failed\n");
+    else if (!testUpdateLocation()) alert("Test: testUpdateLocation Failed\n");
     else alert("Tests Passed!\n");
 
     setIdInp("", "transparent");
