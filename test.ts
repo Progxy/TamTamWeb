@@ -7,14 +7,8 @@ function testUpdateLocation() : boolean {
 function testUpdateSelector() : boolean {
     const idSel: HTMLSelectElement = <HTMLSelectElement> document.getElementById("idSel");
     const old_data: string = idSel.innerHTML;
-    map.updateSelector(null);
-    if (idSel.innerHTML !== "") return false;
-    const test_obj: Object = {
-        "test_data": 12,
-        "test_man" : "asfasf"
-    };
-    map.updateSelector(test_obj);
-    if (idSel.innerHTML === "") return false;
+    if (map.updateSelector(null)) return false;
+    if (!map.updateSelector({"test_data": 12, "test_man" : "asfasf"})) return false;
     idSel.innerHTML = old_data;
     return true;
 }

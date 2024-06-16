@@ -121,17 +121,17 @@ class MapClass {
         return marker;
     }
 
-    public updateSelector(data: Object | null) : void {
+    public updateSelector(data: Object | null) : boolean {
         const idSel: HTMLSelectElement = <HTMLSelectElement> document.getElementById("idSel");
         idSel.innerHTML = ""; // Empty the selector
         
         if (data !== null) {
             const keys: string[] = Object.keys(data);
             keys.forEach((key: string) => { idSel.appendChild(this.createOption(key)) });
-            return;
+            return true;
         }
 
-        return;
+        return false;
     }
 
     public updateLocation(id: string, data: VictimData) : boolean {
