@@ -2,25 +2,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 // @ts-ignore Import module
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 declare const L: any;
 
 export var map: MapClass;
-
-export function setMsgBox(str: string, color: string) {
-    const msgBox : HTMLInputElement = <HTMLInputElement> document.getElementById("msgBox");
-    msgBox.style.color = color;
-    msgBox.innerHTML = str;
-    return;
-}
-
-export function setIdInp(str: string, color: string) {
-    const idInp : HTMLInputElement = <HTMLInputElement> document.getElementById("idInp");
-    idInp.value = str;
-    idInp.style.borderColor = color;
-    return;
-}
 
 export type VictimData = {
     latitude: number;
@@ -43,17 +29,6 @@ class Database {
         this.database = getDatabase(this.app);
     }
 
-    private isAValidId(id: string) : boolean {
-        // Paths must be non-empty strings and can't contain ".", "#", "$", "\n", "[", or "]"
-        return !(id.includes(".") || id.includes("#") || id.includes("$") || id.includes("[") || id.includes("\n") || id.includes("]") || id === "");
-    }
-
-    private setErrorBox(str: string) {
-        setIdInp("", "#D2042D");
-        setMsgBox(str, "#D2042D");
-        return;
-    }
-
     public getQueryReference(id: string) : any | undefined {
         return this.query_references.get(id);
     }    
@@ -62,19 +37,20 @@ class Database {
         return this.query_references.delete(id);
     }
 
-    public getData(id: string, map: MapClass) : boolean {
-        if (!this.isAValidId(id)) {
-            this.setErrorBox(`Invalid ID: Paths must be non-empty strings and can't contain ".", "#", "$", "\n", "[", or "]"`);
-            return false;
-        }
-        
+    public onDataUpdate(id: string, map: MapClass) {
         const unsubscribe = onValue(ref(this.database, id), (snapshot : any) => {
-            if (snapshot.val() === null) unsubscribe();
-            if (!this.query_references.has(id)) this.query_references.set(id, unsubscribe);
-            map.updateLocation(id, <VictimData | null>snapshot.val());
+            map.updateLocation(id, <VictimData> snapshot.val());
         });
-        
-        return true;
+        this.query_references.set(id, unsubscribe);
+        return;
+    }
+
+    public getIds(map: MapClass) {
+        onValue(ref(this.database), (snapshot: any) => {
+            if (snapshot.exists()) map.updateSelector(snapshot.val());
+            else map.updateSelector(null);
+        });
+        return;
     }
 }
 
@@ -89,25 +65,58 @@ class MapClass {
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {}).addTo(this.map);
         document.getElementById("locateBt")?.addEventListener("click", () => map.locate());     
         document.getElementById("stopBt")?.addEventListener("click", () => map.stop()); 
+        this.db.getIds(this);
+    }
+
+    private getSelectorValue() : string | null {
+        const select: HTMLSelectElement = <HTMLSelectElement> document.getElementById("idSel");
+        if (select.innerHTML === "") return null;
+        return select.options[select.selectedIndex].value;
+    }
+
+    private createOption(id: string) {
+        const opt : HTMLOptionElement = <HTMLOptionElement> document.createElement("option");
+        opt.value = id;
+        opt.text = id;
+        opt.id = id;
+        return opt;
     }
 
     private setInfoBox(str: string) {
-        setIdInp("", "#FFBF00");
-        setMsgBox(str, "#FFBF00");
+        const msgBox : HTMLInputElement = <HTMLInputElement> document.getElementById("msgBox");
+        msgBox.style.color = "#FFBF00";
+        msgBox.style.visibility = "visible";
+        msgBox.innerHTML = str;
         return;
     }
 
     private isValidVictimData(data: VictimData) {
-        return !(data.latitude === undefined || data.longitude === undefined || data.id === undefined || data.lastUpdate === undefined || data.isTracked === undefined);
+        return !(data === undefined || data === null || data.latitude === undefined || data.longitude === undefined || data.id === undefined || data.lastUpdate === undefined || data.isTracked === undefined);
     }
 
-    public updateLocation(id: string, data: VictimData | null) {
-        if (data === null) {
-            this.setInfoBox("ID not found!");
-            this.db.deleteQueryReference(id);
-            return false;
-        } else if (!this.isValidVictimData(data)) {
+    public updateSelector(data: Object | null) {
+        const idSel: HTMLSelectElement = <HTMLSelectElement> document.getElementById("idSel");
+        idSel.innerHTML = ""; // Empty the selector
+        
+        if (data !== null) {
+            const keys: string[] = Object.keys(data);
+            for (let key in keys) {
+                idSel.appendChild(this.createOption(keys[key]));
+            }
+            return;
+        }
+
+        return;
+    }
+
+    public updateLocation(id: string, data: VictimData) : boolean {
+        if (!this.isValidVictimData(data)) {
             this.setInfoBox("Corrupted data, pleasy retry...");
+            const unsubscribe: any = this.db.getQueryReference(id);
+            if (unsubscribe !== undefined) {
+                unsubscribe();
+                this.db.deleteQueryReference(id);
+            }
             return false;
         }
         
@@ -124,45 +133,49 @@ class MapClass {
             this.markers[index] = marker; 
         }
 
-        return false;
+        return true;
     }
 
-    public locate() : boolean {
-        let id : HTMLInputElement = <HTMLInputElement>document.getElementById("idInp");
-        const index: number = this.ids.indexOf(id.value);
+    public locate() {
+        const id: string | null = this.getSelectorValue();
+        if (id === null) {
+            this.setInfoBox("No IDs found, the database is empty!");
+            return;
+        }
+
+        const index: number = this.ids.indexOf(id);
         if (index !== -1) {
-            this.setInfoBox("ID already tracked!");
-            return false;
+            this.map.setView(this.markers[index].getLatLng(), 13);
+            return;
         }
         
-        const res: boolean = this.db.getData(id.value, this);
-        return res;
+        this.db.onDataUpdate(id, this);
+        return;
     }
 
-    public stop() : boolean {
-        let id : HTMLInputElement = <HTMLInputElement>document.getElementById("idInp");
-        const index: number = this.ids.indexOf(id.value);
-        if (index !== -1) {
-            this.map.removeLayer(this.markers[index]);
-            this.markers = this.markers.splice(index, index);
-            this.ids = this.ids.splice(index, index);
-            const unsubscribe: any | undefined = this.db.getQueryReference(id.value);
-            unsubscribe(); // Interrupt the database from waiting for data update
-        } else {
-            this.setInfoBox("ID not found!");
-            return false;
+    public stop() {
+        const id: string | null = this.getSelectorValue();
+        if (id === null) {
+            this.setInfoBox("No IDs found, the database is empty!");
+            return;
         }
 
-        return true;
+        const index: number = this.ids.indexOf(id);
+        if (index === -1) return;
+        this.map.removeLayer(this.markers[index]);
+        this.markers.splice(index, 1);
+        this.ids.splice(index, 1);
+        const unsubscribe: any | undefined = this.db.getQueryReference(id);
+        unsubscribe(); // Interrupt the database from waiting for data update
+        return;
     }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
     map = new MapClass();
-    document.getElementById("idInp")?.addEventListener("focus", () => {
-        const idInp: HTMLInputElement = <HTMLInputElement> document.getElementById("idInp");
-        idInp.style.borderColor = "transparent";
+    document.getElementById("idSel")?.addEventListener("focus", () => {
         const msgBox : HTMLInputElement = <HTMLInputElement> document.getElementById("msgBox");
+        msgBox.style.visibility = "hidden";
         msgBox.innerHTML = "";
     });
 });

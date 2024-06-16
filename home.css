@@ -7,17 +7,20 @@ body {
     font-variation-settings: "wdth" 100;
 }
 
+#idSel {
+    width: 7%;
+    height: 3%;
+    background-color: transparent;
+    border-radius: 5px;
+    margin-left: 1%;
+}
+
 #map {
     position: absolute;
     margin-top: 1%;
     margin-left: 1%;
     height: 90%;
     width: 97.5%;
-}
-
-#idInp {
-    margin-left: 1%;
-    border-radius: 5px;
 }
 
 #msgBox {
@@ -27,6 +30,7 @@ body {
     color: antiquewhite;
     margin-left: 1%;
     margin-top: 0.5%;
+    visibility: hidden;
 }
 
 #locateBt,
