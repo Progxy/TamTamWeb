@@ -11,8 +11,8 @@ export type VictimData = {
     latitude: number;
     longitude: number;
     lastUpdate: string;
-    id: string;
     isTracked: boolean;
+    id: string;
 };
 
 class Database {
