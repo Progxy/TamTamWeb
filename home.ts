@@ -33,11 +33,11 @@ class Database {
         return this.query_references.get(id);
     }    
     
-    public deleteQueryReference(id: string) {
+    public deleteQueryReference(id: string) : boolean {
         return this.query_references.delete(id);
     }
 
-    public onDataUpdate(id: string, map: MapClass) {
+    public onDataUpdate(id: string, map: MapClass) : void {
         const unsubscribe = onValue(ref(this.database, id), (snapshot : any) => {
             map.updateLocation(id, <VictimData> snapshot.val());
         });
@@ -45,7 +45,7 @@ class Database {
         return;
     }
 
-    public getIds(map: MapClass) {
+    public getVictimsIds(map: MapClass) : void {
         onValue(ref(this.database), (snapshot: any) => {
             if (snapshot.exists()) map.updateSelector(snapshot.val());
             else map.updateSelector(null);
@@ -65,7 +65,7 @@ class MapClass {
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {}).addTo(this.map);
         document.getElementById("locateBt")?.addEventListener("click", () => map.locate());     
         document.getElementById("stopBt")?.addEventListener("click", () => map.stop()); 
-        this.db.getIds(this);
+        this.db.getVictimsIds(this);
     }
 
     private getSelectorValue() : string | null {
@@ -74,7 +74,7 @@ class MapClass {
         return select.options[select.selectedIndex].value;
     }
 
-    private createOption(id: string) {
+    private createOption(id: string) : HTMLOptionElement {
         const opt : HTMLOptionElement = <HTMLOptionElement> document.createElement("option");
         opt.value = id;
         opt.text = id;
@@ -82,7 +82,7 @@ class MapClass {
         return opt;
     }
 
-    private setInfoBox(str: string) {
+    private setInfoBox(str: string) : void {
         const msgBox : HTMLInputElement = <HTMLInputElement> document.getElementById("msgBox");
         msgBox.style.color = "#FFBF00";
         msgBox.style.visibility = "visible";
@@ -90,11 +90,11 @@ class MapClass {
         return;
     }
 
-    private isValidVictimData(data: VictimData) {
+    private isValidVictimData(data: VictimData) : boolean {
         return !(data === undefined || data === null || data.latitude === undefined || data.longitude === undefined || data.id === undefined || data.lastUpdate === undefined || data.isTracked === undefined);
     }
 
-    public updateSelector(data: Object | null) {
+    public updateSelector(data: Object | null) : void {
         const idSel: HTMLSelectElement = <HTMLSelectElement> document.getElementById("idSel");
         idSel.innerHTML = ""; // Empty the selector
         
@@ -107,14 +107,19 @@ class MapClass {
         return;
     }
 
+    private suspendDataUpdate(id: string) : void {
+        const unsubscribe: any = this.db.getQueryReference(id);
+        if (unsubscribe !== undefined) {
+            unsubscribe();
+            this.db.deleteQueryReference(id);
+        }
+        return;
+    }
+
     public updateLocation(id: string, data: VictimData) : boolean {
         if (!this.isValidVictimData(data)) {
             this.setInfoBox("Corrupted data, pleasy retry...");
-            const unsubscribe: any = this.db.getQueryReference(id);
-            if (unsubscribe !== undefined) {
-                unsubscribe();
-                this.db.deleteQueryReference(id);
-            }
+            this.suspendDataUpdate(id);
             return false;
         }
         
@@ -134,7 +139,8 @@ class MapClass {
         return true;
     }
 
-    public locate() {
+
+    public locate() : void {
         const id: string | null = this.getSelectorValue();
         if (id === null) {
             this.setInfoBox("No IDs found, the database is empty!");
@@ -152,7 +158,7 @@ class MapClass {
         return;
     }
 
-    public stop() {
+    public stop() : void {
         const id: string | null = this.getSelectorValue();
         if (id === null) {
             this.setInfoBox("No IDs found, the database is empty!");
@@ -164,11 +170,7 @@ class MapClass {
         this.map.removeLayer(this.markers[index]);
         this.markers.splice(index, 1);
         this.ids.splice(index, 1);
-        const unsubscribe: any | undefined = this.db.getQueryReference(id);
-        if (unsubscribe !== undefined) {
-            unsubscribe(); // Interrupt the database from waiting for data update
-            this.db.deleteQueryReference(id);
-        }
+        this.suspendDataUpdate(id);
         return;
     }
 }
