@@ -100,9 +100,7 @@ class MapClass {
         
         if (data !== null) {
             const keys: string[] = Object.keys(data);
-            for (let key in keys) {
-                idSel.appendChild(this.createOption(keys[key]));
-            }
+            keys.forEach((key: string) => { idSel.appendChild(this.createOption(key)) });
             return;
         }
 
@@ -146,6 +144,7 @@ class MapClass {
         const index: number = this.ids.indexOf(id);
         if (index !== -1) {
             this.map.setView(this.markers[index].getLatLng(), 13);
+            this.markers[index].openPopup();
             return;
         }
         
@@ -166,7 +165,10 @@ class MapClass {
         this.markers.splice(index, 1);
         this.ids.splice(index, 1);
         const unsubscribe: any | undefined = this.db.getQueryReference(id);
-        unsubscribe(); // Interrupt the database from waiting for data update
+        if (unsubscribe !== undefined) {
+            unsubscribe(); // Interrupt the database from waiting for data update
+            this.db.deleteQueryReference(id);
+        }
         return;
     }
 }
