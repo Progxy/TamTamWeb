@@ -2,10 +2,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 // @ts-ignore Import module
-import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 declare const L: any;
-
 export var map: MapClass;
 
 export type VictimData = {
@@ -94,6 +93,34 @@ class MapClass {
         return !(data === undefined || data === null || data.latitude === undefined || data.longitude === undefined || data.id === undefined || data.lastUpdate === undefined || data.isTracked === undefined);
     }
 
+    private suspendDataUpdate(id: string) : void {
+        const unsubscribe: any = this.db.getQueryReference(id);
+        if (unsubscribe !== undefined) {
+            unsubscribe();
+            this.db.deleteQueryReference(id);
+        }
+        return;
+    }
+
+    public pushIds(id: string) : void {
+        this.ids.push(id);
+        return;
+    }
+
+    public pushMarkers(marker: any) : void {
+        this.markers.push(marker);
+        return;
+    }
+
+    public getMap() : any {
+        return this.map;
+    }
+
+    public createMarker(location: number[], str: string) : any {
+        const marker: any = L.marker(location).addTo(this.map).bindPopup(str);
+        return marker;
+    }
+
     public updateSelector(data: Object | null) : void {
         const idSel: HTMLSelectElement = <HTMLSelectElement> document.getElementById("idSel");
         idSel.innerHTML = ""; // Empty the selector
@@ -104,15 +131,6 @@ class MapClass {
             return;
         }
 
-        return;
-    }
-
-    private suspendDataUpdate(id: string) : void {
-        const unsubscribe: any = this.db.getQueryReference(id);
-        if (unsubscribe !== undefined) {
-            unsubscribe();
-            this.db.deleteQueryReference(id);
-        }
         return;
     }
 
@@ -140,38 +158,38 @@ class MapClass {
     }
 
 
-    public locate() : void {
+    public locate() : boolean {
         const id: string | null = this.getSelectorValue();
         if (id === null) {
             this.setInfoBox("No IDs found, the database is empty!");
-            return;
+            return false;
         }
 
         const index: number = this.ids.indexOf(id);
         if (index !== -1) {
             this.map.setView(this.markers[index].getLatLng(), 13);
             this.markers[index].openPopup();
-            return;
+            return true;
         }
         
         this.db.onDataUpdate(id, this);
-        return;
+        return true;
     }
 
-    public stop() : void {
+    public stop() : boolean {
         const id: string | null = this.getSelectorValue();
         if (id === null) {
             this.setInfoBox("No IDs found, the database is empty!");
-            return;
+            return false;
         }
 
         const index: number = this.ids.indexOf(id);
-        if (index === -1) return;
+        if (index === -1) return true;
         this.map.removeLayer(this.markers[index]);
         this.markers.splice(index, 1);
         this.ids.splice(index, 1);
         this.suspendDataUpdate(id);
-        return;
+        return true;
     }
 }
 
