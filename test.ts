@@ -1,7 +1,22 @@
 import { map, VictimData } from "./home.js";
 
+function createOption(id: string) : HTMLOptionElement {
+    const opt : HTMLOptionElement = <HTMLOptionElement> document.createElement("option");
+    opt.value = id;
+    opt.text = id;
+    opt.id = id;
+    return opt;
+}
+
 function testUpdateLocation() : boolean {
-    return !map.updateLocation("test", <VictimData> {"latitude": 123}) && !map.updateLocation("test", <VictimData>(<any>undefined)) && !map.updateLocation("test", <VictimData>(<any>null));
+    const test_data: Object = { latitude: 43.115916, longitude: 12.384950, id: "test", isTracked: true, lastUpdate: Date.now().toString() };
+    return (
+        !map.updateLocation("test", <VictimData> {"latitude": 123}) &&
+        !map.updateLocation("test", <VictimData> (<any>undefined))  &&
+        !map.updateLocation("test", <VictimData> (<any>null))       &&
+        map.updateLocation("test", <VictimData> test_data)          &&
+        map.updateLocation("test", <VictimData> test_data)
+    );
 }
 
 function testUpdateSelector() : boolean {
@@ -13,24 +28,14 @@ function testUpdateSelector() : boolean {
     return true;
 }
 
-function createOption(id: string) : HTMLOptionElement {
-    const opt : HTMLOptionElement = <HTMLOptionElement> document.createElement("option");
-    opt.value = id;
-    opt.text = id;
-    opt.id = id;
-    return opt;
-}
 
 function testLocate() : boolean {
     const idSel: HTMLSelectElement = <HTMLSelectElement> document.getElementById("idSel");
     const old_data: string = idSel.innerHTML;
     idSel.innerHTML = "";
     if (map.locate()) return false;
-    idSel.appendChild(createOption("temp"));
-    idSel.selectedIndex = 0;
-    const location: number[] = [43.124124, 12.241412];
-    const marker: any = map.createMarker(location, "Test");
-    map.pushMarkers(marker);
+    idSel.appendChild(createOption("test"));
+    idSel.selectedIndex = 0;    
     if (!map.locate()) return false;
     idSel.innerHTML = old_data;
     return true;
@@ -41,13 +46,9 @@ function testStop() : boolean {
     const old_data: string = idSel.innerHTML;
     idSel.innerHTML = "";
     if (map.stop()) return false;
-    idSel.appendChild(createOption("temp"));
-    idSel.selectedIndex = 0;
-    map.pushIds("temp");
+    idSel.appendChild(createOption("test"));
     if (!map.stop()) return false;
     idSel.innerHTML = old_data;
-    const maps: any = map.getMap();
-    maps.setView([43.115916, 12.384950], 13);
     return true;
 }
 

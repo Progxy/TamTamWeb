@@ -102,25 +102,6 @@ class MapClass {
         return;
     }
 
-    public pushIds(id: string) : void {
-        this.ids.push(id);
-        return;
-    }
-
-    public pushMarkers(marker: any) : void {
-        this.markers.push(marker);
-        return;
-    }
-
-    public getMap() : any {
-        return this.map;
-    }
-
-    public createMarker(location: number[], str: string) : any {
-        const marker: any = L.marker(location).addTo(this.map).bindPopup(str);
-        return marker;
-    }
-
     public updateSelector(data: Object | null) : boolean {
         const idSel: HTMLSelectElement = <HTMLSelectElement> document.getElementById("idSel");
         idSel.innerHTML = ""; // Empty the selector
