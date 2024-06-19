@@ -60,10 +60,15 @@ class MapClass {
     private map: any;
 
     constructor() {
-        this.map = L.map("map").setView([51.505, -0.09], 13);
+        this.map = L.map("map").setView([43.115916, 12.384950], 13);
         L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {}).addTo(this.map);
         document.getElementById("locateBt")?.addEventListener("click", () => map.locate());     
         document.getElementById("stopBt")?.addEventListener("click", () => map.stop()); 
+        document.getElementById("idSel")?.addEventListener("focus", () => {
+            const msgBox : HTMLInputElement = <HTMLInputElement> document.getElementById("msgBox");
+            msgBox.style.visibility = "hidden";
+            msgBox.innerHTML = "";
+        });
         this.db.getVictimsIds(this);
     }
 
@@ -176,9 +181,4 @@ class MapClass {
 
 document.addEventListener("DOMContentLoaded", () => {
     map = new MapClass();
-    document.getElementById("idSel")?.addEventListener("focus", () => {
-        const msgBox : HTMLInputElement = <HTMLInputElement> document.getElementById("msgBox");
-        msgBox.style.visibility = "hidden";
-        msgBox.innerHTML = "";
-    });
 });
