@@ -10,14 +10,31 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script type="module" src="/out/test.js"></script>
     <title>TamTam</title>
+    <link rel="icon" type="image/x-icon" href="/assets/iconatam">
 </head>
 
 <body>
-    <select name="idSel" id="idSel"></select>
-    <button id="locateBt">Locate</button>
-    <button id="stopBt">Stop</button>
-    <div id="msgBox"></div>
-    <div id="map"></div>
+    <div class="row">
+        <div class="columnleft">
+                <img src="/assets/iconatam" alt="TamTam" class="logo"> 
+                    <br><br><br>
+                    <label name="label" id ="label">Choose the device id you want to track:</label>
+                    <br><br>
+                    <select name="idSel" id="idSel"></select>
+                    <br><br><br>
+                    <button id="locateBt">Locate</button>
+                    <br><br>
+                    <button id="stopBt">Stop</button>   
+                    <br><br><br>
+            <br>
+            <div id="msgBox" class="myDiv"></div>
+            <br>
+            <p>&copy; 2024 Burberi Bellacci. All rights reserved.</p>
+        </div>
+        <div class="columnright">
+            <div id="map"></div>
+        </div>
+      </div>
 </body>
 
 </html>
