@@ -1,45 +1,102 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
+html{
+    height: 100%;
+}
+
 body {
     font-family: "Open Sans", sans-serif;
     font-optical-sizing: auto;
     font-style: normal;
     font-variation-settings: "wdth" 100;
+    height: 100%;
+    background-color: #333333;
+}
+
+.logo{
+    margin-top: 5%;
+    max-width: 30%;
+    height: auto;
 }
 
 #idSel {
-    width: 7%;
-    height: 3%;
+    width: fit-content;
+    height: 40px;
+    font-size: 24px;
     background-color: transparent;
-    border-radius: 5px;
+    border-radius: 15px;
+    border: 3px outset #8c52ff;
     margin-left: 1%;
+    background-color: #ffde59;
+}
+
+#label{
+    font-size: 30px;
+    color: white;
 }
 
 #map {
-    position: absolute;
-    margin-top: 1%;
-    margin-left: 1%;
-    height: 90%;
-    width: 97.5%;
+    height: 100%;
+    width: 69%;   
+    position:absolute;
 }
 
 #msgBox {
+    border: 3px outset #8c52ff;   
+    background-color: transparent;
+    text-align: center;
+    margin: auto;
     width: fit-content;
     height: 5%;
     font-size: 125%;
-    color: antiquewhite;
-    margin-left: 1%;
-    margin-top: 0.5%;
-    visibility: hidden;
+    text-align: center;
+    visibility: visible;
+    color: black;
+    background-color: #ffde59;
 }
 
 #locateBt,
 #stopBt {
-    margin-left: 1%;
+    padding: 15px 25px;
+    font-size: 24px;
     cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    color: #fff;
+    background-color: #8c52ff;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 9px #ffde59;
+}
+  
+#locateBt:hover,
+#stopBt:hover  {background-color: #8c52ff}
+
+#locateBt:active,
+#stopBt:active  {
+    background-color: #8c52ff;
+    box-shadow: 0 5px #ffde59;
+    transform: translateY(4px);
 }
 
-#locateBt:hover,
-#stopBt:hover {
-    opacity: 0.7;
+p{
+    color: rgb(165, 165, 165);
+    font-size: 65%;
+    text-align: center;
+    margin-bottom: 0%;
+}
+  
+.columnleft {
+    float: left;
+    width: 30%;
+    height: 100%;
+    text-align: center;  
+}
+
+.columnright {
+    float: left;
+    width: 70%;
+    height: 100%;
+    text-align: center;
 }
